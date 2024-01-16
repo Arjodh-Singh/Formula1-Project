@@ -14,17 +14,25 @@ def mountdatalake(storageaccount,container):
           "fs.azure.account.oauth2.client.secret": secretvalue,
           "fs.azure.account.oauth2.client.endpoint": f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"}
 
+    if any(mount.mountPoint==f"/mnt/{storageaccount}/{container}" for mount in dbutils.fs.mounts()):
+        dbutils.fs.unmount(f"/mnt/{storageaccount}/{container}")
+
+
 # Optionally, you can add <directory-name> to the source URI of your mount point.
     dbutils.fs.mount(
     source = f"abfss://{container}@{storageaccount}.dfs.core.windows.net/",
-    mount_point = f"/mnt/{container}",
+    mount_point = f"/mnt/{storageaccount}/{container}",
     extra_configs = configs)
 
 display(dbutils.fs.mounts())
 
 # COMMAND ----------
 
-mountdatalake("devarjsa","demo")
+dbutils.fs.unmount("/mnt/bronze")
+
+# COMMAND ----------
+
+mountdatalake("devarjsa","silver")
 
 # COMMAND ----------
 
@@ -40,4 +48,9 @@ mountdatalake("devarjsa","bronze")
 
 # COMMAND ----------
 
-display(dbutils.fs.ls("/mnt/bronze/lap_times"))
+# MAGIC %fs
+# MAGIC ls /mnt/devarjsa/silver/circuits/
+
+# COMMAND ----------
+
+
