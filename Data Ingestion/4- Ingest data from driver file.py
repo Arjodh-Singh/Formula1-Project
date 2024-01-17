@@ -1,6 +1,15 @@
 # Databricks notebook source
+# MAGIC %run ../Include/Config
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %run ../Include/Common_Functions
+
+# COMMAND ----------
+
 drivers_df=spark.read\
-    .json("/mnt/devarjsa/bronze/drivers.json")
+    .json(f"{bronze_path_folder}/drivers.json")
 
 # COMMAND ----------
 
@@ -35,7 +44,7 @@ driver_schema=StructType([StructField("code",StringType(),False),
 
 drivers_df_schema=spark.read\
     .schema(driver_schema)\
-    .json("/mnt/devarjsa/bronze/drivers.json")
+    .json(f"{bronze_path_folder}/drivers.json")
 
 # COMMAND ----------
 
@@ -47,10 +56,13 @@ from pyspark.sql.functions import current_timestamp, to_timestamp,concat,col,lit
 
 # COMMAND ----------
 
-drivers_df_selected=drivers_df_schema.withColumn("ingestion_date",current_timestamp())\
-                    .withColumnRenamed("driverId","driver_id")\
+drivers_df_selected=drivers_df_schema.withColumnRenamed("driverId","driver_id")\
                     .withColumnRenamed("driverRef","driver_ref")\
                     .withColumn("name",concat(col("name.forename"),lit(' '),col("name.surname")))
+
+# COMMAND ----------
+
+drivers_df_selected=ingestion_date(drivers_df_selected)
 
 # COMMAND ----------
 
@@ -62,7 +74,7 @@ display(drivers_df_final)
 
 # COMMAND ----------
 
-drivers_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/drivers')
+drivers_df_final.write.mode("overwrite").parquet(f'{silver_path_folder}/drivers')
 
 # COMMAND ----------
 
@@ -71,7 +83,7 @@ drivers_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/drivers')
 
 # COMMAND ----------
 
-display(spark.read.parquet("/mnt/devarjsa/silver/drivers"))
+display(spark.read.parquet(f"{silver_path_folder}/drivers"))
 
 # COMMAND ----------
 

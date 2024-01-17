@@ -1,6 +1,14 @@
 # Databricks notebook source
+# MAGIC %run ../Include/Config
+
+# COMMAND ----------
+
+# MAGIC %run ../Include/Common_Functions
+
+# COMMAND ----------
+
 results_df=spark.read\
-    .json("/mnt/devarjsa/bronze/results.json")
+    .json(f"{bronze_path_folder}/results.json")
 
 # COMMAND ----------
 
@@ -43,7 +51,7 @@ results_schema=StructType([StructField("constructorId",IntegerType(),False),
 
 results_df_schema=spark.read\
     .schema(results_schema)\
-    .json("/mnt/devarjsa/bronze/results.json")
+    .json(f"{bronze_path_folder}/results.json")
 
 # COMMAND ----------
 
@@ -55,8 +63,7 @@ from pyspark.sql.functions import current_timestamp, to_timestamp,concat,col,lit
 
 # COMMAND ----------
 
-results_df_selected=results_df_schema.withColumn("ingestion_date",current_timestamp())\
-                    .withColumnRenamed("constructorId","constructor_id")\
+results_df_selected=results_df_schema.withColumnRenamed("constructorId","constructor_id")\
                     .withColumnRenamed("driverId","driver_id")\
                     .withColumnRenamed("fastestLap","fastest_lap")\
                     .withColumnRenamed("fastestLapSpeed","fastest_lap_speed")\
@@ -69,6 +76,10 @@ results_df_selected=results_df_schema.withColumn("ingestion_date",current_timest
 
 # COMMAND ----------
 
+results_df_selected=ingestion_date(results_df_selected)
+
+# COMMAND ----------
+
 results_df_final=results_df_selected.drop(col("status_id"))
 
 # COMMAND ----------
@@ -77,7 +88,7 @@ display(results_df_final)
 
 # COMMAND ----------
 
-results_df_final.write.mode("overwrite").partitionBy("race_id").parquet('/mnt/devarjsa/silver/results')
+results_df_final.write.mode("overwrite").partitionBy("race_id").parquet(f'{silver_path_folder}/results')
 
 # COMMAND ----------
 
@@ -86,7 +97,7 @@ results_df_final.write.mode("overwrite").partitionBy("race_id").parquet('/mnt/de
 
 # COMMAND ----------
 
-display(spark.read.parquet("/mnt/devarjsa/silver/results"))
+display(spark.read.parquet(f"{silver_path_folder}/results"))
 
 # COMMAND ----------
 

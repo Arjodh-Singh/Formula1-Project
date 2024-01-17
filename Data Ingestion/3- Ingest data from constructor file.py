@@ -1,11 +1,20 @@
 # Databricks notebook source
+# MAGIC %run ../Include/Config
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %run ../Include/Common_Functions
+
+# COMMAND ----------
+
 # MAGIC %fs
 # MAGIC ls /mnt/devarjsa/bronze
 
 # COMMAND ----------
 
 constructors_df=spark.read\
-    .json("/mnt/devarjsa/bronze/constructors.json")
+    .json(f"{bronze_path_folder}/constructors.json")
 
 # COMMAND ----------
 
@@ -31,7 +40,7 @@ constructors_df.printSchema()
 
 constructor_df=spark.read\
     .schema(constructors_schema)\
-    .json("/mnt/devarjsa/bronze/constructors.json")
+    .json(f"{bronze_path_folder}/constructors.json")
 
 # COMMAND ----------
 
@@ -43,9 +52,12 @@ from pyspark.sql.functions import current_timestamp, to_timestamp,concat,col,lit
 
 # COMMAND ----------
 
-constructors_df_timestamp=constructors_df.withColumn("ingestion_date",current_timestamp())\
-                    .withColumnRenamed("constructorId","constructor_id")\
+constructors_df_timestamp=constructors_df.withColumnRenamed("constructorId","constructor_id")\
                     .withColumnRenamed("constructorRef","constructor_ref")
+
+# COMMAND ----------
+
+constructors_df_timestamp=ingestion_date(constructors_df_timestamp)
 
 # COMMAND ----------
 
@@ -57,7 +69,7 @@ display(constructors_df_final)
 
 # COMMAND ----------
 
-constructors_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/constructors')
+constructors_df_final.write.mode("overwrite").parquet(f'{silver_path_folder}/constructors')
 
 # COMMAND ----------
 
@@ -66,4 +78,4 @@ constructors_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/cons
 
 # COMMAND ----------
 
-
+display(spark.read.parquet(f"{silver_path_folder}/constructors"))

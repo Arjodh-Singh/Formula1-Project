@@ -1,8 +1,16 @@
 # Databricks notebook source
+# MAGIC %run ../Include/Config
+
+# COMMAND ----------
+
+# MAGIC %run ../Include/Common_Functions
+
+# COMMAND ----------
+
 circuits_df=spark.read\
     .option("header",True)\
     .option("infer_schema",True)\
-    .csv("/mnt/devarjsa/bronze/circuits.csv")
+    .csv(f"{bronze_path_folder}/circuits.csv")
    
 
 # COMMAND ----------
@@ -32,14 +40,14 @@ display(circuits_df.describe())
 
 # COMMAND ----------
 
-display(dbutils.fs.ls("/mnt/devarjsa/bronze"))
+display(dbutils.fs.ls(f"{bronze_path_folder}"))
 
 # COMMAND ----------
 
 circuits_df=spark.read\
     .option("header",True)\
     .schema(circuits_schema)\
-    .csv("/mnt/devarjsa/bronze/circuits.csv")
+    .csv(f"{bronze_path_folder}/circuits.csv")
 
 # COMMAND ----------
 
@@ -73,7 +81,7 @@ from pyspark.sql.functions import current_timestamp
 
 # COMMAND ----------
 
-circuits_df_final=circuits_df_renamed.withColumn("ingestion_date",current_timestamp())
+circuits_df_final=ingestion_date(circuits_df_renamed)
 
 # COMMAND ----------
 
@@ -85,8 +93,8 @@ circuits_df_final.printSchema()
 
 # COMMAND ----------
 
-circuits_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/circuits')
+circuits_df_final.write.mode("overwrite").parquet(f'{silver_path_folder}/circuits')
 
 # COMMAND ----------
 
-
+display(spark.read.parquet(f"{silver_path_folder}/circuits"))

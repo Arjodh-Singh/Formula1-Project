@@ -1,17 +1,20 @@
 # Databricks notebook source
-display(dbutils.fs.mounts())
+# MAGIC %run ../Include/Config
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC ls /mnt/devarjsa/bronze
+# MAGIC %run ../Include/Common_Functions
+
+# COMMAND ----------
+
+display(dbutils.fs.mounts())
 
 # COMMAND ----------
 
 races_df=spark.read\
     .option("header",True)\
     .option("infer_schema",True)\
-    .csv("/mnt/devarjsa/bronze/races.csv")
+    .csv(f"{bronze_path_folder}/races.csv")
 
 # COMMAND ----------
 
@@ -41,7 +44,7 @@ races_df.printSchema()
 races_df=spark.read\
     .option("header",True)\
     .schema(races_schema)\
-    .csv("/mnt/devarjsa/bronze/races.csv")
+    .csv(f"{bronze_path_folder}/races.csv")
 
 # COMMAND ----------
 
@@ -49,8 +52,11 @@ from pyspark.sql.functions import current_timestamp, to_timestamp,concat,col,lit
 
 # COMMAND ----------
 
-races_df_timestamp=races_df.withColumn("ingestion_date",current_timestamp())\
-                    .withColumn("race_timestamp",to_timestamp(concat(col("date"),lit(' '),col("time")),'yyyy-MM-dd HH:mm:ss'))
+races_df_timestamp=races_df.withColumn("race_timestamp",to_timestamp(concat(col("date"),lit(' '),col("time")),'yyyy-MM-dd HH:mm:ss'))
+
+# COMMAND ----------
+
+races_df_timestamp=ingestion_date(races_df_timestamp)
 
 # COMMAND ----------
 
@@ -68,7 +74,7 @@ display(races_selected_df)
 
 # COMMAND ----------
 
-races_selected_df.write.mode("overwrite").parquet('/mnt/devarjsa/silver/races')
+races_selected_df.write.mode("overwrite").parquet(f'{silver_path_folder}/races')
 
 # COMMAND ----------
 
@@ -77,4 +83,4 @@ races_selected_df.write.mode("overwrite").parquet('/mnt/devarjsa/silver/races')
 
 # COMMAND ----------
 
-display("")
+display(spark.read.parquet(f"{silver_path_folder}/races"))
