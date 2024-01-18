@@ -1,6 +1,15 @@
 # Databricks notebook source
+# MAGIC %run ../Include/Config
+
+# COMMAND ----------
+
+# MAGIC %run ../Include/Common_Functions
+# MAGIC
+
+# COMMAND ----------
+
 lap_times_df=spark.read\
-    .csv("/mnt/devarjsa/bronze/lap_times")
+    .csv(f"{bronze_path_folder}/lap_times")
 
 # COMMAND ----------
 
@@ -31,7 +40,7 @@ lap_times_schema=StructType([StructField("raceId",IntegerType(),False),
 
 lap_times_df_schema=spark.read\
     .schema(lap_times_schema)\
-    .csv("/mnt/devarjsa/bronze/lap_times")
+    .csv(f"{bronze_path_folder}/lap_times")
 
 # COMMAND ----------
 
@@ -47,10 +56,13 @@ from pyspark.sql.functions import current_timestamp, to_timestamp,concat,col,lit
 
 # COMMAND ----------
 
-lap_times_df_final=lap_times_df_schema.withColumn("ingestion_date",current_timestamp())\
-                    .withColumnRenamed("raceId","race_id")\
+lap_times_df_final=lap_times_df_schema.withColumnRenamed("raceId","race_id")\
                     .withColumnRenamed("driverId","driver_id")
                      
+
+# COMMAND ----------
+
+lap_times_df_final=ingestion_date(lap_times_df_final)
 
 # COMMAND ----------
 
@@ -58,7 +70,7 @@ display(lap_times_df_final)
 
 # COMMAND ----------
 
-lap_times_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/lap_times')
+lap_times_df_final.write.mode("overwrite").parquet(f'{silver_path_folder}/lap_times')
 
 # COMMAND ----------
 
@@ -67,7 +79,7 @@ lap_times_df_final.write.mode("overwrite").parquet('/mnt/devarjsa/silver/lap_tim
 
 # COMMAND ----------
 
-display(spark.read.parquet("/mnt/devarjsa/silver/lap_times"))
+display(spark.read.parquet(f"{silver_path_folder}/lap_times"))
 
 # COMMAND ----------
 

@@ -1,7 +1,15 @@
 # Databricks notebook source
+# MAGIC %run ../Include/Config
+
+# COMMAND ----------
+
+# MAGIC %run ../Include/Common_Functions
+
+# COMMAND ----------
+
 pitstop_df=spark.read\
     .option('multiLine',True)\
-    .json("/mnt/devarjsa/bronze/pit_stops.json")
+    .json(f"{bronze_path_folder}/pit_stops.json")
 
 # COMMAND ----------
 
@@ -35,7 +43,7 @@ pitstop_schema=StructType([StructField("driverId",IntegerType(),False),
 pitstop_df_schema=spark.read\
     .option('multiLine',True)\
     .schema(pitstop_schema)\
-    .json("/mnt/devarjsa/bronze/pit_stops.json")
+    .json(f"{bronze_path_folder}/pit_stops.json")
 
 # COMMAND ----------
 
@@ -51,10 +59,13 @@ from pyspark.sql.functions import current_timestamp, to_timestamp,concat,col,lit
 
 # COMMAND ----------
 
-pitstop_df_selected=pitstop_df_schema.withColumn("ingestion_date",current_timestamp())\
-                    .withColumnRenamed("raceId","race_id")\
+pitstop_df_selected=pitstop_df_schema.withColumnRenamed("raceId","race_id")\
                     .withColumnRenamed("driverId","driver_id")
                      
+
+# COMMAND ----------
+
+pitstop_df_selected=ingestion_date(pitstop_df_selected)
 
 # COMMAND ----------
 
@@ -62,7 +73,7 @@ display(pitstop_df_selected)
 
 # COMMAND ----------
 
-pitstop_df_selected.write.mode("overwrite").parquet('/mnt/devarjsa/silver/pit_stops')
+pitstop_df_selected.write.mode("overwrite").parquet(f'{silver_path_folder}/pit_stops')
 
 # COMMAND ----------
 
@@ -71,7 +82,7 @@ pitstop_df_selected.write.mode("overwrite").parquet('/mnt/devarjsa/silver/pit_st
 
 # COMMAND ----------
 
-display(spark.read.parquet("/mnt/devarjsa/silver/pit_stops"))
+display(spark.read.parquet(f"{silver_path_folder}/pit_stops"))
 
 # COMMAND ----------
 
