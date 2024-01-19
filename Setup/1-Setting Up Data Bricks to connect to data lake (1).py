@@ -32,7 +32,7 @@ dbutils.fs.unmount("/mnt/bronze")
 
 # COMMAND ----------
 
-mountdatalake("devarjsa","gold")
+mountdatalake("devarjsa","delta")
 
 # COMMAND ----------
 
